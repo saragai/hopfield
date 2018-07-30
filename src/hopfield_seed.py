@@ -141,36 +141,29 @@ def randomize(x, rate):
 
 if __name__ == "__main__":
 
-    num_pattern = 5
-
-    for i in range(num_pattern):
-        print_image(image[i])
+    num_pattern = 6
 
     print("==== train ====")
-    data = image3.reshape([num_pattern, -1, 1])
+    data = image.reshape([num_pattern, -1, 1])
 
     # print(w)
 
-    np.random.seed(0)
-    iter_num = 1000
+    iter_num = 100
 
-    fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(5 * 2, 5))
+    fig, axs = plt.subplots(nrows=2, ncols=num_pattern, figsize=(3 * num_pattern, 5))
     # noise_rates = np.arange(21)/100
-    noise_rates = np.arange(0, 105, 5)/100
-    print(noise_rates)
+    noise_rates = np.array([0., 0.05, 0.1, 0.15, 0.2])
 
     color_array = ['r', 'b', 'y', 'g', 'c', 'm']
 
+    _data = data[:num_pattern]
+    w = train(_data)
+
     # num of pattern
-    for qnum, q in enumerate([1, 3]):
-        print(f"num of pattern : {q+1}")
+    for s in range(100):
+        np.random.seed(s)
 
-        _data = data[:q+1]
-        w = train(_data)
-
-        print(w)
-
-        for qi in range(q+1):
+        for qi in range(num_pattern):
             print(f"  No.{qi}")
             x = _data[qi]
             accs = np.zeros(len(noise_rates))  # Accuracy rates
@@ -185,7 +178,7 @@ if __name__ == "__main__":
                 for i in range(iter_num):
                     test_x = randomize(x, noise_rate)
                     # print_image(test_x.reshape([5, 5]))
-                    for _ in range(1000):
+                    for _ in range(100):
                         test_x = update(w, test_x, 0)
                         # print_image(test_x.reshape([5, 5]))
 
@@ -198,22 +191,23 @@ if __name__ == "__main__":
                 accs[ni] = acc / iter_num
                 sims[ni] = sim / iter_num
 
-            if qnum == 1:
-                axs[0, qnum].plot(noise_rates, accs, color=color_array[qi], label=f"image {qi}")
+            if s == 99:
+                axs[0, qi].plot(noise_rates, accs, color=color_array[qi], alpha=0.01, label=f"image {qi}")
             else:
-                axs[0, qnum].plot(noise_rates, accs, color=color_array[qi])
-            axs[1, qnum].plot(noise_rates, sims, color=color_array[qi])
+                axs[0, qi].plot(noise_rates, accs, color=color_array[qi], alpha=0.01)
+            axs[1, qi].plot(noise_rates, sims, color=color_array[qi], alpha=0.01)
 
-        axs[0, qnum].set_title(f"{q+1} Images Accuracy rate")
-        axs[1, qnum].set_title(f"{q+1} Images Similarity")
+    for qi in range(num_pattern):
+        axs[0, qi].set_title(f"{qi} Image's Accuracy rate")
+        axs[1, qi].set_title(f"{qi} Image's Similarity")
         # axs[0, q].set_xlabel("noise rate")
-        axs[1, qnum].set_xlabel("noise rate")
-        axs[0, qnum].set_ylim(0., 1.)
-        axs[1, qnum].set_ylim(0., 8)
+        axs[1, qi].set_xlabel("noise rate")
+        axs[0, qi].set_ylim(0., 1.)
+        axs[1, qi].set_ylim(0., 7.)
 
     axs[0, 0].set_ylabel("accuracy")
     axs[1, 0].set_ylabel("similarity")
-    fig.legend()
+    # fig.legend()
 
     fig.subplots_adjust(bottom=0.15, wspace=0.3, hspace=0.4)
-    fig.savefig(f"hopfield2_yoko.png")
+    fig.savefig(f"hopfield1.png")
